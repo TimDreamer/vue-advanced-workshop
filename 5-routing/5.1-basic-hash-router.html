@@ -19,7 +19,7 @@
   <a @click="routeTo('#bar')" href="#bar">bar</a>
 </div>
 
-<script>
+<!-- <script>
 window.addEventListener('hashchange', () => {
   app.url = window.location.hash.slice(1)
 })
@@ -39,4 +39,34 @@ const app = new Vue({
     }
   }
 })
+</script> -->
+<script>
+  window.addEventListener('hashchange', () => {
+    app.url = window.location.hash.slice(1)
+  })
+  const app = new Vue(({
+    data () {
+      return {
+        url: window.location.hash.slice(1)
+      }
+    },
+    el: '#app',
+    components: {
+      foo: {
+        render (h) {
+          return h('div', 'foo')
+        }
+      },
+      bar: {
+        render (h) {
+          return h('div', 'bar')
+        }
+      }
+    },
+    methods: {
+      routeTo (newHash) {
+        // TODO
+      }
+    }
+  }))
 </script>
