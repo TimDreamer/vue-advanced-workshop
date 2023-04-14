@@ -1,9 +1,9 @@
-<script src="../node_modules/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
 <script src="./path-to-regexp.js"></script>
 
 <div id="app"></div>
 
-<script>
+<!-- <script>
 // '#/foo/123' -> foo with id: 123
 // '#/bar' -> Bar
 // '#/404' -> NotFound
@@ -75,4 +75,78 @@ const app = new Vue({
     ])
   }
 })
+</script> -->
+<script>
+  // '#/foo/123' -> foo with id: 123
+  // '#/bar' -> Bar
+  // '#/404' -> NotFound
+
+  // path-to-regexp usage:
+  // const regex = pathToRegexp(pattern)
+  // const match = regex.exec(path)
+
+  const Foo = {
+    props: ['id'],
+    template: `<div>foo with id: {{ id }}</div>`,
+  }
+  const Bar = { template: `<div>bar</div>` }
+  const NotFound = { template: `<div>not found!</div>` }
+
+  const routeTable = {
+    '/foo/:id': Foo,
+    '/Bar': Bar,
+    '/404': NotFound,
+  }
+
+  window.addEventListener('hashchange', () => {
+    app.url = window.location.hash.slice(1)
+  })
+
+  const app = new Vue({
+    el: '#app',
+    data: {
+      url: window.location.hash.slice(1),
+    },
+    computed: {
+      processedRouteTable() {
+        return Object.keys(routeTable).reduce((acc, route) => {
+          const keys = []
+          const regex = pathToRegexp(route, keys)
+          acc.push({
+            regex,
+            keys,
+            route,
+          })
+
+          return acc
+        }, [])
+      },
+    },
+    render(h) {
+      const path = '/' + this.url
+
+      let componentToRender = NotFound // default
+      let props = {}
+
+      this.processedRouteTable.some(({ regex, keys, route }) => {
+        const result = regex.exec(path)
+        if (result) {
+          componentToRender = routeTable[route]
+          for (let i = 0; i < keys.length; i++) {
+            props[keys[i].name] = result[i + 1]
+          }
+          return true // break
+        }
+      })
+
+      return (vnode = h('div', [
+        h(componentToRender, { props }),
+        h('a', { attrs: { href: '#foo/123' } }, 'foo 123'),
+        ' | ',
+        h('a', { attrs: { href: '#foo/234' } }, 'foo 234'),
+        ' | ',
+        h('a', { attrs: { href: '#bar' } }, 'bar'),
+      ]))
+    },
+  })
 </script>
